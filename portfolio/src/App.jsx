@@ -1,5 +1,84 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// --- Custom Cursor Follower (Easter Egg) ---
+const CursorFollower = () => {
+  const dotRef = useRef(null);
+  const auraRef = useRef(null);
+
+  useEffect(() => {
+    let mouseX = -100;
+    let mouseY = -100;
+    let auraX = -100;
+    let auraY = -100;
+    let isHovered = false;
+
+    const handleMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (dotRef.current) {
+        dotRef.current.style.left = `${mouseX}px`;
+        dotRef.current.style.top = `${mouseY}px`;
+      }
+    };
+
+    const handleMouseOver = (e) => {
+      const target = e.target;
+      if (target.closest('a, button, input, textarea, .group, .cursor-pointer')) {
+        isHovered = true;
+      } else {
+        isHovered = false;
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseover', handleMouseOver);
+
+    let animationFrameId;
+    const render = () => {
+      auraX += (mouseX - auraX) * 0.18;
+      auraY += (mouseY - auraY) * 0.18;
+
+      if (auraRef.current) {
+        auraRef.current.style.left = `${auraX}px`;
+        auraRef.current.style.top = `${auraY}px`;
+        if (isHovered) {
+          auraRef.current.style.width = '48px';
+          auraRef.current.style.height = '48px';
+          auraRef.current.style.borderColor = '#00ff9d';
+          auraRef.current.style.background = 'rgba(16, 185, 129, 0.2)';
+        } else {
+          auraRef.current.style.width = '30px';
+          auraRef.current.style.height = '30px';
+          auraRef.current.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          auraRef.current.style.background = 'rgba(16, 185, 129, 0.08)';
+        }
+      }
+      animationFrameId = requestAnimationFrame(render);
+    };
+    render();
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseover', handleMouseOver);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <React.Fragment>
+      <div
+        ref={auraRef}
+        className="fixed pointer-events-none z-50 rounded-full border transition-all duration-150 -translate-x-1/2 -translate-y-1/2 hidden md:block"
+      />
+      <div
+        ref={dotRef}
+        className="fixed pointer-events-none z-50 rounded-full bg-emerald-400 shadow-[0_0_8px_#00ff9d] -translate-x-1/2 -translate-y-1/2 hidden md:block"
+        style={{ width: '5px', height: '5px' }}
+      />
+    </React.Fragment>
+  );
+};
+
 // --- Matrix Dot Grid Canvas Component with Interactive Perspective & Ripple ---
 const MatrixCanvas = () => {
   const canvasRef = useRef(null);
